@@ -3,9 +3,9 @@
 
 To clone and install from a command prompt...
 ```
-$ git clone 
+$ git clone https://github.com/davetemplin/nextjs-express-ts.git
 $ cd nextjs-express-ts
-$ npm install https://github.com/davetemplin/nextjs-express-ts.git
+$ npm install
 ```
 
 To run simply open the project in vscode and hit `ctrl+shift+b` followed by `F5`, or perform the following additional steps from a command prompt...
