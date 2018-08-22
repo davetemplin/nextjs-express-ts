@@ -8,9 +8,16 @@ $ cd nextjs-express-ts
 $ npm install
 ```
 
-To run simply open the project in vscode and hit `ctrl+shift+b` followed by `F5`, or perform the following additional steps from a command prompt...
-
+To build and run...
 ```
 $ npm run-script build
-$ node bin/index.js
+$ node bin
+```
+
+Or simply open the project in vscode and hit `ctrl+shift+b` followed by `F5`.
+
+
+To refresh dependencies...
+```
+npm install body-parser compression cookie-parser express next react react-dom typescript ts-node nodemon @zeit/next-typescript @types/body-parser @types/compression @types/cookie-parser @types/express @types/next @types/react
 ```
