@@ -57,47 +57,39 @@ return [
 WITH
 products AS (
   SELECT
-    UPPER(CONCAT(country, '_', sku)) key,
-    groupName group_name,
-    manufacturerGroupID group_id,
-    productName product_name,
+    m.name manufacturer_name,
+    p.name product_name,
     productID product_id,
-    country country_code,
-    sku
+    p.country_code,
+    COALESCE(sku, p.model) sku,
+    manufacturerGroupID group_id
+    --groupName group_name
   FROM ClientDB.ProductCatalog
-  JOIN ClientDB.DataFeedProduct USING(manufacturerGroupID, dataFeedProductID)
-  JOIN ClientDB.ManufacturerGroup USING(manufacturerGroupID)
-  LEFT OUTER JOIN alpha.whirlpool_sku_category USING(sku)
-  WHERE manufacturerGroupID IN (1770)
-  AND productID IN (10521850)
+  JOIN pricespider.products p ON p.id=productID
+  JOIN pricespider.manufacturers m ON m.id=p.manufacturer_id
+  LEFT OUTER JOIN ClientDB.DataFeedProduct USING(manufacturerGroupID, dataFeedProductID)
+  --LEFT OUTER JOIN ClientDB.ManufacturerGroup USING(manufacturerGroupID)
+  WHERE manufacturerGroupID IN (1653, 1635)
+  AND productID IN (7756726, 9919827, 10356909, 7748331, 10413940, 8318959)
 ),
 sellers AS (
-  SELECT id seller_id, name seller_name FROM pricespider.sellers WHERE id IN (2,167,187,298,299)
+  SELECT id seller_id, name seller_name FROM pricespider.sellers WHERE id IN (2, 228, 25432, 993189)
 ),
 captures AS (
   SELECT * EXCEPT(n) FROM (
     SELECT capture_id, capture_date, capture_url, tags, data, product_id, seller_id,
-    DATE(TIMESTAMP_TRUNC(capture_date, WEEK(MONDAY))) week,
-    ROW_NUMBER() OVER (PARTITION BY product_id, seller_id, TIMESTAMP_TRUNC(capture_date, WEEK(MONDAY)) ORDER BY COALESCE(select_date, capture_date) DESC) n
+    ROW_NUMBER() OVER (PARTITION BY capture_id ORDER BY COALESCE(select_date, capture_date) DESC) n
     FROM alpha.captures
-    WHERE group_id=1770
+    WHERE product_id IN (7756726, 9919827, 10356909, 7748331, 10413940, 8318959)
   )
-  WHERE n=1
-),
-weeks AS (
-  SELECT ROW_NUMBER() OVER (ORDER BY week DESC) week_num, week
-  FROM UNNEST(GENERATE_DATE_ARRAY('2018-08-20', CURRENT_DATE(), INTERVAL 1 WEEK)) week
 )
 
 SELECT
-  week_num,
-  week,
   country_code,
   sku,
-  group_name,
+  manufacturer_name,
   product_name,
   seller_name,
-  NOT capture_id IS NULL matched,
   JSON_EXTRACT_SCALAR(data, '$.name.value') title,
   IF(capture_id IS NOT NULL, SAFE_CAST(name_status(product_name, JSON_EXTRACT_SCALAR(data, '$.name.value')) AS FLOAT64), NULL) title_error,
   IF(capture_id IS NOT NULL, name_status_details(product_name, JSON_EXTRACT_SCALAR(data, '$.name.value')), NULL) title_error_details,
@@ -134,7 +126,7 @@ SELECT
   capture_id,
   group_id,
   product_id,
-  seller_id,
-  key
-FROM products, sellers, weeks
-LEFT OUTER JOIN captures USING(week, product_id, seller_id);
+  seller_id
+FROM captures
+JOIN products USING(product_id)
+JOIN sellers USING(seller_id);
