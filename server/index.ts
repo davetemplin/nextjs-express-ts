@@ -5,6 +5,9 @@ import * as cookieParser from 'cookie-parser';
 import * as routes from './routes';
 import nextapp from './nextapp';
 
+import checkEnv from './lib/checkEnv';
+checkEnv();
+
 const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
 const app = express();
